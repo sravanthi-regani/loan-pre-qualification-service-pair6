@@ -1,0 +1,35 @@
+# Ruff configuration
+# See https://docs.astral.sh/ruff/ for more information
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+]
+
+# Set line length to match Black
+line-length = 88
+
+# Target Python 3.9+
+target-version = "py39"
+
+[lint]
+# Enable pycodestyle (E), Pyflakes (F), and isort (I) rules
+select = ["E", "F", "I", "W"]
+
+# Ignore specific rules if needed
+ignore = []
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[format]
+# Use Black-compatible formatting
+quote-style = "double"
+indent-style = "space"

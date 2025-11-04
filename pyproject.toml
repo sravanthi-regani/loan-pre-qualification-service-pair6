@@ -1,0 +1,31 @@
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.venv
+  | __pycache__
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "prequal-api/app",
+    "credit-service/app",
+    "decision-service/app",
+    "database"
+]
+testpaths = [
+    "prequal-api/app",
+    "credit-service/app",
+    "decision-service/app"
+]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
