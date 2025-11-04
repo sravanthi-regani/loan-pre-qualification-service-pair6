@@ -1,4 +1,4 @@
-.PHONY: help install setup-hooks lint format test test-verbose test-coverage run-local clean docker-up docker-down
+.PHONY: help install setup-hooks lint format test test-verbose test-coverage run-local clean docker-up docker-down docker-clean init-db
 
 # Default target
 help:
@@ -13,6 +13,8 @@ help:
 	@echo "  make run-local     - Run all services locally with docker-compose"
 	@echo "  make docker-up     - Start all services in detached mode"
 	@echo "  make docker-down   - Stop all services"
+	@echo "  make docker-clean  - Stop services and remove all data (volumes)"
+	@echo "  make init-db       - Initialize database tables (for local dev)"
 	@echo "  make clean         - Clean up cache and temporary files"
 
 # Install dependencies
@@ -77,6 +79,18 @@ docker-up:
 docker-down:
 	@echo "Stopping all services..."
 	docker-compose down
+
+# Stop all services and remove volumes (cleanup all data)
+docker-clean:
+	@echo "Stopping all services and removing volumes..."
+	@echo "WARNING: This will delete all data in the database!"
+	docker-compose down -v
+	@echo "✓ Cleanup complete!"
+
+# Initialize database
+init-db:
+	@echo "Initializing database tables..."
+	python init_db.py
 
 # Clean up cache and temporary files
 clean:
