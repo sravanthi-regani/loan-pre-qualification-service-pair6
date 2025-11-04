@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 from kafka_handler import CreditKafkaHandler
 from cibil_simulator import CIBILSimulator
@@ -66,7 +66,7 @@ def process_loan_application(message: dict) -> dict:
             **message,
             "cibil_score": None,
             "error": str(e),
-            "credit_check_completed_at": datetime.utcnow().isoformat()
+            "credit_check_completed_at": datetime.now(timezone.utc).isoformat()
         }
 
 
@@ -158,41 +158,6 @@ async def health_check():
         "service": "credit-service",
         "kafka_connected": kafka_handler is not None
     }
-
-
-@app.get("/test-cibil/{pan_number}")
-async def test_cibil_calculation(
-    pan_number: str,
-    monthly_income: float = 50000,
-    loan_type: str = "PERSONAL"
-):
-    """
-    Test endpoint to simulate CIBIL score calculation without Kafka.
-
-    Args:
-        pan_number: PAN number
-        monthly_income: Monthly income (default: 50000)
-        loan_type: Type of loan (default: PERSONAL)
-    """
-    try:
-        cibil_score = CIBILSimulator.calculate_cibil_score(
-            pan_number=pan_number,
-            monthly_income=monthly_income,
-            loan_type=loan_type
-        )
-
-        return {
-            "pan_number": pan_number,
-            "monthly_income": monthly_income,
-            "loan_type": loan_type,
-            "cibil_score": cibil_score,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
 
 
 if __name__ == "__main__":

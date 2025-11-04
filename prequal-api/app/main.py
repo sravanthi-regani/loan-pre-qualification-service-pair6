@@ -193,6 +193,9 @@ async def get_application_status(
             status=application.status
         )
 
+    except HTTPException:
+        # Re-raise HTTPException without wrapping (404, 400, etc.)
+        raise
     except ValueError:
         logger.error(f"Invalid UUID format: {application_id}")
         raise HTTPException(

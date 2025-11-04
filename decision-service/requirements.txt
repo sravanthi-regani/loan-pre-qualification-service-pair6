@@ -6,3 +6,7 @@ kafka-python==2.0.2
 python-multipart==0.0.6
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2

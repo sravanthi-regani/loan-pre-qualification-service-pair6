@@ -48,7 +48,8 @@ class DecisionEngine:
 
         logger.debug(f"Minimum required monthly income: {minimum_monthly_income:.2f}")
         logger.debug(f"Actual monthly income: {monthly_income:.2f}")
-        logger.debug(f"Income ratio: {monthly_income / minimum_monthly_income:.2f}x")
+        if  minimum_monthly_income > 0:
+            logger.debug(f"Income ratio: {monthly_income / minimum_monthly_income:.2f}x")
 
         # Rule 2: Good CIBIL with sufficient income
         if monthly_income > minimum_monthly_income:
