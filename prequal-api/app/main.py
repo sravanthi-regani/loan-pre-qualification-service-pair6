@@ -1,26 +1,23 @@
-from fastapi import FastAPI, HTTPException, status, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from sqlalchemy.orm import Session
-from decimal import Decimal
 import logging
-import sys
 import os
+import sys
+from contextlib import asynccontextmanager
+from decimal import Decimal
 
-# Add parent directory to path to import database package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from kafka_producer import kafka_producer
+from pydantic_schemas import LoanApplicationRequest, LoanApplicationResponse
+from sqlalchemy.orm import Session
 
 from database import get_db, init_db
 from database.crud import ApplicationCRUD
 
-from pydantic_schemas import LoanApplicationRequest, LoanApplicationResponse
-from kafka_producer import kafka_producer
+# Add parent directory to path to import database package
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +50,7 @@ app = FastAPI(
     title="Prequal API",
     description="Loan Pre-Qualification API - Main entry point for loan applications",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -72,24 +69,24 @@ async def root():
         "service": "Prequal API",
         "status": "running",
         "version": "1.0.0",
-        "description": "Loan Pre-Qualification Service"
+        "description": "Loan Pre-Qualification Service",
+        "test value": 42,
+        "test value2": "helloasdfkj",
     }
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "service": "prequal-api"
-    }
+    return {"status": "healthy", "service": "prequal-api"}
 
 
-@app.post("/applications", response_model=LoanApplicationResponse, status_code=status.HTTP_202_ACCEPTED)
-async def create_application(
-    application_request: LoanApplicationRequest,
-    db: Session = Depends(get_db)
-):
+@app.post(
+    "/applications",
+    response_model=LoanApplicationResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def create_application(application_request: LoanApplicationRequest, db: Session = Depends(get_db)):
     """
     Create a new loan application.
 
@@ -104,8 +101,9 @@ async def create_application(
     - Decision Service (for final pre-qualification decision)
     """
     try:
-        logger.info(f"Received loan application from {application_request.applicant_name} "
-                   f"for PAN: {application_request.pan_number}")
+        logger.info(
+            f"Received loan application from {application_request.applicant_name} for PAN: {application_request.pan_number}"
+        )
 
         # Create application in database
         application = ApplicationCRUD.create_application(
@@ -115,7 +113,7 @@ async def create_application(
             monthly_income_inr=Decimal(str(application_request.monthly_income)),
             loan_amount_inr=Decimal(str(application_request.loan_amount)),
             loan_type=application_request.loan_type.value.upper(),
-            status="PENDING"
+            status="PENDING",
         )
 
         logger.info(f"Application created in database with ID: {application.id}")
@@ -129,7 +127,7 @@ async def create_application(
             "loan_amount": float(application.loan_amount_inr),
             "loan_type": application.loan_type,
             "status": application.status,
-            "created_at": application.created_at.isoformat()
+            "created_at": application.created_at.isoformat(),
         }
 
         # Publish to Kafka
@@ -137,7 +135,7 @@ async def create_application(
             kafka_producer.send_message(
                 topic="loan_applications_submitted",
                 key=str(application.id),
-                message=kafka_message
+                message=kafka_message,
             )
             logger.info(f"Application {application.id} published to Kafka successfully")
         except Exception as kafka_error:
@@ -145,24 +143,22 @@ async def create_application(
             # Continue even if Kafka publish fails - application is already in DB
             # In production, you might want to implement a retry mechanism
 
-        return LoanApplicationResponse(
-            application_id=str(application.id),
-            status=application.status
-        )
+        return LoanApplicationResponse(application_id=str(application.id), status=application.status)
 
     except Exception as e:
         logger.error(f"Error creating loan application: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing application: {str(e)}"
+            detail=f"Error processing application: {str(e)}",
         )
 
 
-@app.get("/applications/{application_id}/status", response_model=LoanApplicationResponse, status_code=status.HTTP_200_OK)
-async def get_application_status(
-    application_id: str,
-    db: Session = Depends(get_db)
-):
+@app.get(
+    "/applications/{application_id}/status",
+    response_model=LoanApplicationResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_application_status(application_id: str, db: Session = Depends(get_db)):
     """
     Get the current status of a loan application by ID.
 
@@ -175,6 +171,7 @@ async def get_application_status(
     try:
         # Fetch application from database
         from uuid import UUID
+
         application_uuid = UUID(application_id)
 
         application = ApplicationCRUD.get_application_by_id(db, application_uuid)
@@ -183,15 +180,12 @@ async def get_application_status(
             logger.warning(f"Application not found: {application_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Application {application_id} not found"
+                detail=f"Application {application_id} not found",
             )
 
         logger.info(f"Retrieved status for application {application_id}: {application.status}")
 
-        return LoanApplicationResponse(
-            application_id=str(application.id),
-            status=application.status
-        )
+        return LoanApplicationResponse(application_id=str(application.id), status=application.status)
 
     except HTTPException:
         # Re-raise HTTPException without wrapping (404, 400, etc.)
@@ -200,16 +194,17 @@ async def get_application_status(
         logger.error(f"Invalid UUID format: {application_id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid application ID format: {application_id}"
+            detail=f"Invalid application ID format: {application_id}",
         )
     except Exception as e:
         logger.error(f"Error fetching application status: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching application status: {str(e)}"
+            detail=f"Error fetching application status: {str(e)}",
         )
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

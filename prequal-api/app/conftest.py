@@ -1,14 +1,17 @@
-import pytest
-import sys
 import os
+import sys
+import uuid
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlalchemy.types import TypeDecorator, CHAR
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
+from sqlalchemy.types import CHAR, TypeDecorator
+
+from database import Base, get_db
 
 # Add root directory to path to import database module
 # Path structure: loan-pre-qualification-service-pair6/prequal-api/app/conftest.py
@@ -16,18 +19,17 @@ import uuid
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, root_dir)
 
-from database import get_db, Base
-
 
 class GUID(TypeDecorator):
     """Platform-independent GUID type.
     Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
     """
+
     impl = CHAR
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return dialect.type_descriptor(UUID())
         else:
             return dialect.type_descriptor(CHAR(36))
@@ -35,7 +37,7 @@ class GUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        elif dialect.name == 'postgresql':
+        elif dialect.name == "postgresql":
             return str(value)
         else:
             if not isinstance(value, uuid.UUID):
@@ -52,6 +54,7 @@ class GUID(TypeDecorator):
             else:
                 return value
 
+
 @pytest.fixture(scope="function")
 def db_engine():
     """Create an in-memory SQLite database engine for testing."""
@@ -62,10 +65,9 @@ def db_engine():
     )
 
     # Replace UUID type with GUID for SQLite compatibility
-    from database import models
     for table in Base.metadata.tables.values():
         for column in table.columns:
-            if hasattr(column.type, '__class__') and column.type.__class__.__name__ == 'UUID':
+            if hasattr(column.type, "__class__") and column.type.__class__.__name__ == "UUID":
                 column.type = GUID()
 
     Base.metadata.create_all(bind=engine)
@@ -85,7 +87,7 @@ def db_session(db_engine):
 @pytest.fixture(scope="function")
 def mock_kafka_producer():
     """Mock Kafka producer for testing."""
-    with patch('main.kafka_producer') as mock_producer:
+    with patch("main.kafka_producer") as mock_producer:
         mock_producer.connect = MagicMock()
         mock_producer.send_message = MagicMock()
         mock_producer.close = MagicMock()
@@ -123,7 +125,7 @@ def sample_application_data():
         "pan_number": "ABCDE1234F",
         "loan_type": "personal",
         "loan_amount": 500000.0,
-        "monthly_income": 50000.0
+        "monthly_income": 50000.0,
     }
 
 
@@ -136,20 +138,20 @@ def sample_application_data_list():
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 500000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         },
         {
             "applicant_name": "Jane Smith",
             "pan_number": "XYZAB5678C",
             "loan_type": "home",
             "loan_amount": 5000000.0,
-            "monthly_income": 150000.0
+            "monthly_income": 150000.0,
         },
         {
             "applicant_name": "Bob Johnson",
             "pan_number": "PQRST9012D",
             "loan_type": "auto",
             "loan_amount": 800000.0,
-            "monthly_income": 75000.0
-        }
+            "monthly_income": 75000.0,
+        },
     ]

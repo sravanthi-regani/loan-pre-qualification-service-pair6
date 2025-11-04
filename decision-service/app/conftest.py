@@ -1,31 +1,33 @@
-import pytest
-import sys
 import os
+import sys
+import uuid
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlalchemy.types import TypeDecorator, CHAR
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
+from sqlalchemy.types import CHAR, TypeDecorator
+
+from database import Base
 
 # Add root directory to path to import database module
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, root_dir)
-
-from database import get_db, Base
 
 
 class GUID(TypeDecorator):
     """Platform-independent GUID type.
     Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
     """
+
     impl = CHAR
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return dialect.type_descriptor(UUID())
         else:
             return dialect.type_descriptor(CHAR(36))
@@ -33,7 +35,7 @@ class GUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        elif dialect.name == 'postgresql':
+        elif dialect.name == "postgresql":
             return str(value)
         else:
             if not isinstance(value, uuid.UUID):
@@ -61,10 +63,9 @@ def db_engine():
     )
 
     # Replace UUID type with GUID for SQLite compatibility
-    from database import models
     for table in Base.metadata.tables.values():
         for column in table.columns:
-            if hasattr(column.type, '__class__') and column.type.__class__.__name__ == 'UUID':
+            if hasattr(column.type, "__class__") and column.type.__class__.__name__ == "UUID":
                 column.type = GUID()
 
     Base.metadata.create_all(bind=engine)
@@ -84,7 +85,7 @@ def db_session(db_engine):
 @pytest.fixture(scope="function")
 def mock_kafka_handler():
     """Mock Kafka handler for testing."""
-    with patch('main.kafka_handler') as mock_handler:
+    with patch("main.kafka_handler") as mock_handler:
         mock_handler.connect = MagicMock()
         mock_handler.consume_and_process = MagicMock()
         mock_handler.close = MagicMock()
@@ -112,7 +113,7 @@ def sample_credit_report():
         "loan_type": "PERSONAL",
         "status": "PENDING",
         "cibil_score": 750,
-        "credit_check_completed_at": "2024-01-01T00:00:00"
+        "credit_check_completed_at": "2024-01-01T00:00:00",
     }
 
 
@@ -146,5 +147,5 @@ def sample_credit_reports():
             "loan_amount": 3000000.0,
             "loan_type": "HOME",
             "cibil_score": 800,
-        }
+        },
     ]

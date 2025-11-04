@@ -1,7 +1,8 @@
-from kafka import KafkaConsumer, KafkaProducer
 import json
 import logging
 from typing import Callable, Optional
+
+from kafka import KafkaConsumer, KafkaProducer
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class CreditKafkaHandler:
         bootstrap_servers: str = "localhost:9092",
         consumer_group: str = "credit-service-group",
         consume_topic: str = "loan_applications_submitted",
-        produce_topic: str = "credit-checks"
+        produce_topic: str = "credit-checks",
     ):
         self.bootstrap_servers = bootstrap_servers
         self.consumer_group = consumer_group
@@ -36,20 +37,20 @@ class CreditKafkaHandler:
                 self.consume_topic,
                 bootstrap_servers=self.bootstrap_servers,
                 group_id=self.consumer_group,
-                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-                key_deserializer=lambda k: k.decode('utf-8') if k else None,
-                auto_offset_reset='earliest',
+                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+                key_deserializer=lambda k: k.decode("utf-8") if k else None,
+                auto_offset_reset="earliest",
                 enable_auto_commit=True,
-                max_poll_interval_ms=300000
+                max_poll_interval_ms=300000,
             )
 
             # Initialize producer
             self.producer = KafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
-                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-                key_serializer=lambda k: k.encode('utf-8') if k else None,
-                acks='all',
-                retries=3
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+                key_serializer=lambda k: k.encode("utf-8") if k else None,
+                acks="all",
+                retries=3,
             )
 
             logger.info(f"Connected to Kafka at {self.bootstrap_servers}")
@@ -77,8 +78,7 @@ class CreditKafkaHandler:
             for message in self.consumer:
                 try:
                     logger.info(
-                        f"Received message from topic {message.topic}, "
-                        f"partition {message.partition}, offset {message.offset}"
+                        f"Received message from topic {message.topic}, partition {message.partition}, offset {message.offset}"
                     )
                     logger.debug(f"Message key: {message.key}, value: {message.value}")
 
@@ -109,11 +109,7 @@ class CreditKafkaHandler:
         try:
             application_id = result.get("application_id")
 
-            future = self.producer.send(
-                self.produce_topic,
-                key=application_id,
-                value=result
-            )
+            future = self.producer.send(self.produce_topic, key=application_id, value=result)
 
             # Wait for the message to be sent
             record_metadata = future.get(timeout=10)

@@ -13,7 +13,7 @@ exclude = [
 ]
 
 # Set line length to match Black
-line-length = 88
+line-length = 130
 
 # Target Python 3.9+
 target-version = "py39"

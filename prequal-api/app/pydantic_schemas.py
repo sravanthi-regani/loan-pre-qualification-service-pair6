@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from enum import Enum
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LoanType(str, Enum):
@@ -32,4 +33,3 @@ class LoanApplicationRequest(BaseModel):
 class LoanApplicationResponse(BaseModel):
     application_id: str
     status: str = "PENDING"
-

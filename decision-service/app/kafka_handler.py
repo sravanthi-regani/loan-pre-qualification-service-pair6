@@ -1,14 +1,15 @@
-from kafka import KafkaConsumer
 import json
 import logging
-from typing import Callable
-import sys
 import os
+import sys
+from typing import Callable
+
+from kafka import KafkaConsumer
+
+from database import SessionLocal
 
 # Add parent directory to path to import database package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-from database import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class DecisionKafkaHandler:
         self,
         bootstrap_servers: str = "localhost:9092",
         consumer_group: str = "decision-service-group",
-        consume_topic: str = "credit_reports_generated"
+        consume_topic: str = "credit_reports_generated",
     ):
         self.bootstrap_servers = bootstrap_servers
         self.consumer_group = consumer_group
@@ -39,11 +40,11 @@ class DecisionKafkaHandler:
                 self.consume_topic,
                 bootstrap_servers=self.bootstrap_servers,
                 group_id=self.consumer_group,
-                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-                key_deserializer=lambda k: k.decode('utf-8') if k else None,
-                auto_offset_reset='earliest',
+                value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+                key_deserializer=lambda k: k.decode("utf-8") if k else None,
+                auto_offset_reset="earliest",
                 enable_auto_commit=True,
-                max_poll_interval_ms=300000
+                max_poll_interval_ms=300000,
             )
 
             logger.info(f"Connected to Kafka at {self.bootstrap_servers}")
@@ -74,8 +75,7 @@ class DecisionKafkaHandler:
                 db_session = SessionLocal()
                 try:
                     logger.info(
-                        f"Received message from topic {message.topic}, "
-                        f"partition {message.partition}, offset {message.offset}"
+                        f"Received message from topic {message.topic}, partition {message.partition}, offset {message.offset}"
                     )
                     logger.debug(f"Message key: {message.key}, value: {message.value}")
 

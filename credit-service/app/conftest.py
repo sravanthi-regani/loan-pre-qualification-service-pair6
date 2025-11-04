@@ -1,12 +1,13 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="function")
 def mock_kafka_handler():
     """Mock Kafka handler for testing."""
-    with patch('main.kafka_handler') as mock_handler:
+    with patch("main.kafka_handler") as mock_handler:
         mock_handler.connect = MagicMock()
         mock_handler.consume_and_process = MagicMock()
         mock_handler.close = MagicMock()
@@ -34,7 +35,7 @@ def sample_loan_application():
         "loan_amount": 500000.0,
         "loan_type": "PERSONAL",
         "status": "PENDING",
-        "created_at": "2024-01-01T00:00:00"
+        "created_at": "2024-01-01T00:00:00",
     }
 
 
@@ -49,7 +50,7 @@ def sample_loan_applications():
             "monthly_income": 50000.0,
             "loan_amount": 500000.0,
             "loan_type": "PERSONAL",
-            "status": "PENDING"
+            "status": "PENDING",
         },
         {
             "application_id": "123e4567-e89b-12d3-a456-426614174002",
@@ -58,7 +59,7 @@ def sample_loan_applications():
             "monthly_income": 80000.0,
             "loan_amount": 5000000.0,
             "loan_type": "HOME",
-            "status": "PENDING"
+            "status": "PENDING",
         },
         {
             "application_id": "123e4567-e89b-12d3-a456-426614174003",
@@ -67,6 +68,6 @@ def sample_loan_applications():
             "monthly_income": 25000.0,
             "loan_amount": 800000.0,
             "loan_type": "AUTO",
-            "status": "PENDING"
-        }
+            "status": "PENDING",
+        },
     ]

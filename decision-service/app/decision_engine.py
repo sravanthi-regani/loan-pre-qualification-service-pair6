@@ -17,12 +17,7 @@ class DecisionEngine:
     LOAN_TERM_MONTHS = 48  # 4-year loan term
 
     @classmethod
-    def make_decision(
-        cls,
-        cibil_score: int,
-        monthly_income: float,
-        loan_amount: float
-    ) -> str:
+    def make_decision(cls, cibil_score: int, monthly_income: float, loan_amount: float) -> str:
         """
         Make pre-qualification decision based on CIBIL score and income ratio.
 
@@ -34,8 +29,7 @@ class DecisionEngine:
         Returns:
             Decision status: REJECTED, PRE_APPROVED, or MANUAL_REVIEW
         """
-        logger.info(f"Evaluating decision: CIBIL={cibil_score}, "
-                   f"Income={monthly_income}, Loan={loan_amount}")
+        logger.info(f"Evaluating decision: CIBIL={cibil_score}, Income={monthly_income}, Loan={loan_amount}")
 
         # Rule 1: CIBIL score below minimum threshold
         if cibil_score < cls.MIN_CIBIL_SCORE:
@@ -48,17 +42,21 @@ class DecisionEngine:
 
         logger.debug(f"Minimum required monthly income: {minimum_monthly_income:.2f}")
         logger.debug(f"Actual monthly income: {monthly_income:.2f}")
-        if  minimum_monthly_income > 0:
+        if minimum_monthly_income > 0:
             logger.debug(f"Income ratio: {monthly_income / minimum_monthly_income:.2f}x")
 
         # Rule 2: Good CIBIL with sufficient income
         if monthly_income > minimum_monthly_income:
-            logger.info(f"PRE_APPROVED: CIBIL score {cibil_score} >= {cls.MIN_CIBIL_SCORE} "
-                       f"and income {monthly_income:.2f} > required {minimum_monthly_income:.2f}")
+            logger.info(
+                f"PRE_APPROVED: CIBIL score {cibil_score} >= {cls.MIN_CIBIL_SCORE} "
+                f"and income {monthly_income:.2f} > required {minimum_monthly_income:.2f}"
+            )
             return "PRE_APPROVED"
 
         # Rule 3: Good CIBIL but tight income ratio
-        logger.info(f"MANUAL_REVIEW: CIBIL score {cibil_score} >= {cls.MIN_CIBIL_SCORE} "
-                   f"but income {monthly_income:.2f} <= required {minimum_monthly_income:.2f} "
-                   f"(Tight income ratio)")
+        logger.info(
+            f"MANUAL_REVIEW: CIBIL score {cibil_score} >= {cls.MIN_CIBIL_SCORE} "
+            f"but income {monthly_income:.2f} <= required {minimum_monthly_income:.2f} "
+            f"(Tight income ratio)"
+        )
         return "MANUAL_REVIEW"

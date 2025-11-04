@@ -1,5 +1,5 @@
-import random
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class CIBILSimulator:
     # Test PAN numbers with predefined scores
     TEST_PANS = {
         "ABCDE1234F": 790,  # Test PAN 1 - Good credit
-        "FGHIJ5678K": 610   # Test PAN 2 - Below average credit
+        "FGHIJ5678K": 610,  # Test PAN 2 - Below average credit
     }
 
     # Score boundaries
@@ -25,12 +25,7 @@ class CIBILSimulator:
     BASE_SCORE = 650
 
     @classmethod
-    def calculate_cibil_score(
-        cls,
-        pan_number: str,
-        monthly_income: float,
-        loan_type: str
-    ) -> int:
+    def calculate_cibil_score(cls, pan_number: str, monthly_income: float, loan_type: str) -> int:
         """
         Calculate CIBIL score based on PAN number and application details.
 
@@ -64,10 +59,10 @@ class CIBILSimulator:
 
         if loan_type_upper == "PERSONAL":
             score -= 10  # Unsecured loan
-            logger.debug(f"Personal loan (unsecured) penalty: -10 points")
+            logger.debug("Personal loan (unsecured) penalty: -10 points")
         elif loan_type_upper == "HOME":
             score += 10  # Secured loan
-            logger.debug(f"Home loan (secured) bonus: +10 points")
+            logger.debug("Home loan (secured) bonus: +10 points")
 
         # Add random variation to make it realistic (-5 to +5)
         random_adjustment = random.randint(-5, 5)
@@ -77,7 +72,6 @@ class CIBILSimulator:
         # Ensure score is within valid range (300-900)
         score = max(cls.MIN_SCORE, min(cls.MAX_SCORE, score))
 
-        logger.info(f"Calculated CIBIL score for PAN {pan_number}: {score} "
-                   f"(income: {monthly_income}, loan_type: {loan_type})")
+        logger.info(f"Calculated CIBIL score for PAN {pan_number}: {score} (income: {monthly_income}, loan_type: {loan_type})")
 
         return score

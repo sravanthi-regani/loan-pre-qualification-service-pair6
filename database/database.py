@@ -1,14 +1,11 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from typing import Generator
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 # Database URL - can be configured via environment variable
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/loan_prequal_db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/loan_prequal_db")
 
 # Create SQLAlchemy engine
 engine = create_engine(
@@ -16,7 +13,7 @@ engine = create_engine(
     pool_pre_ping=True,  # Verify connections before using them
     pool_size=10,
     max_overflow=20,
-    echo=False  # Set to True for SQL query logging
+    echo=False,  # Set to True for SQL query logging
 )
 
 # Create SessionLocal class
@@ -49,7 +46,6 @@ def init_db():
     Initialize the database by creating all tables.
     Call this function on application startup.
     """
-    from . import models  # Import models to register them
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
 

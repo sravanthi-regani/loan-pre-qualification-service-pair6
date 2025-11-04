@@ -1,6 +1,7 @@
-from kafka import KafkaProducer
 import json
 import logging
+
+from kafka import KafkaProducer
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,11 @@ class PrequalKafkaProducer:
         try:
             self.producer = KafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
-                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-                key_serializer=lambda k: k.encode('utf-8') if k else None,
-                acks='all',
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+                key_serializer=lambda k: k.encode("utf-8") if k else None,
+                acks="all",
                 retries=3,
-                max_in_flight_requests_per_connection=1
+                max_in_flight_requests_per_connection=1,
             )
             logger.info(f"Connected to Kafka at {self.bootstrap_servers}")
         except Exception as e:

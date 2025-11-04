@@ -1,18 +1,15 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 import logging
 import threading
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from kafka_handler import CreditKafkaHandler
 from cibil_simulator import CIBILSimulator
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from kafka_handler import CreditKafkaHandler
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Global Kafka handler
@@ -39,9 +36,7 @@ def process_loan_application(message: dict) -> dict:
 
         # Calculate CIBIL score
         cibil_score = CIBILSimulator.calculate_cibil_score(
-            pan_number=pan_number,
-            monthly_income=monthly_income,
-            loan_type=loan_type
+            pan_number=pan_number, monthly_income=monthly_income, loan_type=loan_type
         )
 
         logger.info(f"Calculated CIBIL score {cibil_score} for application {application_id}")
@@ -50,11 +45,12 @@ def process_loan_application(message: dict) -> dict:
         credit_report = {
             **message,  # Forward all original application data
             "cibil_score": cibil_score,
-            "credit_check_completed_at": datetime.utcnow().isoformat()
+            "credit_check_completed_at": datetime.utcnow().isoformat(),
         }
 
-        logger.info(f"CIBIL score {cibil_score} calculated for application {application_id}, "
-                   f"publishing to credit_reports_generated")
+        logger.info(
+            f"CIBIL score {cibil_score} calculated for application {application_id}, publishing to credit_reports_generated"
+        )
 
         return credit_report
 
@@ -66,7 +62,7 @@ def process_loan_application(message: dict) -> dict:
             **message,
             "cibil_score": None,
             "error": str(e),
-            "credit_check_completed_at": datetime.now(timezone.utc).isoformat()
+            "credit_check_completed_at": datetime.now(timezone.utc).isoformat(),
         }
 
 
@@ -83,7 +79,7 @@ def start_kafka_consumer():
             bootstrap_servers="localhost:9092",
             consumer_group="credit-service-group",
             consume_topic="loan_applications_submitted",
-            produce_topic="credit_reports_generated"
+            produce_topic="credit_reports_generated",
         )
 
         kafka_handler.connect()
@@ -125,7 +121,7 @@ app = FastAPI(
     title="Credit Service",
     description="Microservice for performing credit checks and CIBIL score simulation",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -144,7 +140,7 @@ async def root():
         "service": "Credit Service",
         "status": "running",
         "version": "1.0.0",
-        "description": "Credit Check and CIBIL Score Simulation Service"
+        "description": "Credit Check and CIBIL Score Simulation Service",
     }
 
 
@@ -156,10 +152,11 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "credit-service",
-        "kafka_connected": kafka_handler is not None
+        "kafka_connected": kafka_handler is not None,
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8002)

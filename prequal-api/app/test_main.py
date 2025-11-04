@@ -32,7 +32,7 @@ class TestCreateApplication:
                 "pan_number": "ABCDE1234F",
                 "loan_type": loan_type,
                 "loan_amount": 500000.0,
-                "monthly_income": 50000.0
+                "monthly_income": 50000.0,
             }
             response = client.post("/applications", json=application_data)
             assert response.status_code == status.HTTP_202_ACCEPTED
@@ -46,7 +46,7 @@ class TestCreateApplication:
             "pan_number": "INVALID123",  # Invalid format
             "loan_type": "personal",
             "loan_amount": 500000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=invalid_pan_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -58,7 +58,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "invalid_type",
             "loan_amount": 500000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=invalid_loan_type_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -70,7 +70,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 0.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=zero_amount_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -82,7 +82,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": -100000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=negative_amount_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -94,7 +94,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 200000000.0,  # Exceeds 100000000 limit
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=excessive_amount_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -106,7 +106,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 500000.0,
-            "monthly_income": 0.0
+            "monthly_income": 0.0,
         }
         response = client.post("/applications", json=zero_income_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -118,7 +118,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 500000.0,
-            "monthly_income": -50000.0
+            "monthly_income": -50000.0,
         }
         response = client.post("/applications", json=negative_income_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -130,7 +130,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             "loan_type": "personal",
             "loan_amount": 500000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=short_name_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -142,7 +142,7 @@ class TestCreateApplication:
             "pan_number": "ABCDE1234F",
             # Missing loan_type
             "loan_amount": 500000.0,
-            "monthly_income": 50000.0
+            "monthly_income": 50000.0,
         }
         response = client.post("/applications", json=incomplete_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -200,11 +200,12 @@ class TestGetApplicationStatus:
 
         # Update the application status in the database
         from uuid import UUID
+
         ApplicationCRUD.update_application_status(
             db=db_session,
             application_id=UUID(application_id),
             status="PRE_APPROVED",
-            cibil_score=750
+            cibil_score=750,
         )
 
         # Retrieve and verify the updated status

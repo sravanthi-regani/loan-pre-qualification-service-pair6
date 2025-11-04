@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
-from decimal import Decimal
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from .models import Application
 
@@ -21,7 +22,7 @@ class ApplicationCRUD:
         loan_amount_inr: Decimal,
         loan_type: str,
         status: str = "PENDING",
-        cibil_score: Optional[int] = None
+        cibil_score: Optional[int] = None,
     ) -> Application:
         """
         Create a new application record.
@@ -50,7 +51,7 @@ class ApplicationCRUD:
                 loan_amount_inr=loan_amount_inr,
                 loan_type=loan_type,
                 status=status,
-                cibil_score=cibil_score
+                cibil_score=cibil_score,
             )
             db.add(application)
             db.commit()
@@ -75,12 +76,7 @@ class ApplicationCRUD:
         return db.query(Application).filter(Application.id == application_id).first()
 
     @staticmethod
-    def get_applications_by_status(
-        db: Session,
-        status: str,
-        limit: int = 100,
-        offset: int = 0
-    ) -> List[Application]:
+    def get_applications_by_status(db: Session, status: str, limit: int = 100, offset: int = 0) -> List[Application]:
         """
         Get applications by status with pagination.
 
@@ -103,11 +99,7 @@ class ApplicationCRUD:
         )
 
     @staticmethod
-    def get_all_applications(
-        db: Session,
-        limit: int = 100,
-        offset: int = 0
-    ) -> List[Application]:
+    def get_all_applications(db: Session, limit: int = 100, offset: int = 0) -> List[Application]:
         """
         Get all applications with pagination.
 
@@ -119,20 +111,14 @@ class ApplicationCRUD:
         Returns:
             List of Application instances
         """
-        return (
-            db.query(Application)
-            .order_by(Application.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-            .all()
-        )
+        return db.query(Application).order_by(Application.created_at.desc()).limit(limit).offset(offset).all()
 
     @staticmethod
     def update_application_status(
         db: Session,
         application_id: UUID,
         status: str,
-        cibil_score: Optional[int] = None
+        cibil_score: Optional[int] = None,
     ) -> Optional[Application]:
         """
         Update application status and optionally CIBIL score.
@@ -191,5 +177,5 @@ class ApplicationCRUD:
             "pending": pending,
             "pre_approved": pre_approved,
             "rejected": rejected,
-            "manual_review": manual_review
+            "manual_review": manual_review,
         }

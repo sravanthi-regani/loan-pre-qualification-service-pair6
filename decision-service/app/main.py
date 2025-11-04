@@ -1,28 +1,24 @@
+import logging
+import os
+import sys
+import threading
 import time
+from contextlib import asynccontextmanager
 
+from decision_engine import DecisionEngine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import logging
-import threading
-import sys
-import os
+from kafka_handler import DecisionKafkaHandler
 from sqlalchemy.orm import Session
-
-# Add parent directory to path to import database package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from database import init_db
 from database.crud import ApplicationCRUD
 
-from kafka_handler import DecisionKafkaHandler
-from decision_engine import DecisionEngine
+# Add parent directory to path to import database package
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Global Kafka handler
@@ -43,19 +39,18 @@ def process_credit_report(message: dict, db_session: Session) -> None:
         monthly_income = message.get("monthly_income")
         loan_amount = message.get("loan_amount")
 
-        logger.info(f"Processing decision for application {application_id}, "
-                   f"CIBIL: {cibil_score}, Income: {monthly_income}, Loan: {loan_amount}")
+        logger.info(
+            f"Processing decision for application {application_id}, "
+            f"CIBIL: {cibil_score}, Income: {monthly_income}, Loan: {loan_amount}"
+        )
 
         # Check if CIBIL score is available
         if cibil_score is None:
             logger.error(f"CIBIL score not available for application {application_id}")
             # Update status to indicate failure
             from uuid import UUID
-            ApplicationCRUD.update_application_status(
-                db_session,
-                UUID(application_id),
-                status="MANUAL_REVIEW"
-            )
+
+            ApplicationCRUD.update_application_status(db_session, UUID(application_id), status="MANUAL_REVIEW")
             return
 
         # sleep for 1 min before updating the application status
@@ -65,23 +60,23 @@ def process_credit_report(message: dict, db_session: Session) -> None:
         decision_status = DecisionEngine.make_decision(
             cibil_score=cibil_score,
             monthly_income=monthly_income,
-            loan_amount=loan_amount
+            loan_amount=loan_amount,
         )
 
         logger.info(f"Decision for application {application_id}: {decision_status}")
 
         # Update database with decision and CIBIL score
         from uuid import UUID
+
         updated_application = ApplicationCRUD.update_application_status(
             db_session,
             UUID(application_id),
             status=decision_status,
-            cibil_score=cibil_score
+            cibil_score=cibil_score,
         )
 
         if updated_application:
-            logger.info(f"Database updated for application {application_id}: "
-                       f"status={decision_status}, cibil_score={cibil_score}")
+            logger.info(f"Database updated for application {application_id}: status={decision_status}, cibil_score={cibil_score}")
         else:
             logger.warning(f"Application {application_id} not found in database")
 
@@ -101,7 +96,7 @@ def start_kafka_consumer():
         kafka_handler = DecisionKafkaHandler(
             bootstrap_servers="localhost:9092",
             consumer_group="decision-service-group",
-            consume_topic="credit_reports_generated"
+            consume_topic="credit_reports_generated",
         )
 
         kafka_handler.connect()
@@ -150,7 +145,7 @@ app = FastAPI(
     title="Decision Service",
     description="Microservice for making loan pre-qualification decisions",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -169,7 +164,7 @@ async def root():
         "service": "Decision Service",
         "status": "running",
         "version": "1.0.0",
-        "description": "Loan Pre-Qualification Decision Service"
+        "description": "Loan Pre-Qualification Decision Service",
     }
 
 
@@ -181,10 +176,11 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "decision-service",
-        "kafka_connected": kafka_handler is not None
+        "kafka_connected": kafka_handler is not None,
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)
