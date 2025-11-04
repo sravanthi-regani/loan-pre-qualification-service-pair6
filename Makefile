@@ -37,30 +37,30 @@ format:
 # Run all unit tests
 test:
 	@echo "Running tests for prequal-api..."
-	cd prequal-api && pytest -v
+	PYTHONPATH=. pytest prequal-api/app -v
 	@echo "\nRunning tests for credit-service..."
-	cd credit-service && pytest -v
+	PYTHONPATH=. pytest credit-service/app -v
 	@echo "\nRunning tests for decision-service..."
-	cd decision-service && pytest -v
+	PYTHONPATH=. pytest decision-service/app -v
 	@echo "\n✓ All tests passed!"
 
 # Run tests with verbose output
 test-verbose:
 	@echo "Running tests for prequal-api..."
-	cd prequal-api && pytest -vv
+	PYTHONPATH=. pytest prequal-api/app -vv
 	@echo "\nRunning tests for credit-service..."
-	cd credit-service && pytest -vv
+	PYTHONPATH=. pytest credit-service/app -vv
 	@echo "\nRunning tests for decision-service..."
-	cd decision-service && pytest -vv
+	PYTHONPATH=. pytest decision-service/app -vv
 
 # Run tests with coverage
 test-coverage:
 	@echo "Running tests with coverage for prequal-api..."
-	cd prequal-api && pytest --cov=app --cov-report=term-missing
+	PYTHONPATH=. pytest prequal-api/app --cov=prequal-api/app --cov-report=term-missing
 	@echo "\nRunning tests with coverage for credit-service..."
-	cd credit-service && pytest --cov=app --cov-report=term-missing
+	PYTHONPATH=. pytest credit-service/app --cov=credit-service/app --cov-report=term-missing
 	@echo "\nRunning tests with coverage for decision-service..."
-	cd decision-service && pytest --cov=app --cov-report=term-missing
+	PYTHONPATH=. pytest decision-service/app --cov=decision-service/app --cov-report=term-missing
 
 # Run all services locally
 run-local:
