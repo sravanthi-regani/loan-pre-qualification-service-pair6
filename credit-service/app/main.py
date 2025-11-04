@@ -76,7 +76,7 @@ def start_kafka_consumer():
 
     try:
         kafka_handler = CreditKafkaHandler(
-            bootstrap_servers="localhost:9092",
+            bootstrap_servers=None,  # Will use KAFKA_BOOTSTRAP_SERVERS env var
             consumer_group="credit-service-group",
             consume_topic="loan_applications_submitted",
             produce_topic="credit_reports_generated",

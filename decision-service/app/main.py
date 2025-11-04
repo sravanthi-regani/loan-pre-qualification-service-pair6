@@ -94,7 +94,7 @@ def start_kafka_consumer():
 
     try:
         kafka_handler = DecisionKafkaHandler(
-            bootstrap_servers="localhost:9092",
+            bootstrap_servers=None,  # Will use KAFKA_BOOTSTRAP_SERVERS env var
             consumer_group="decision-service-group",
             consume_topic="credit_reports_generated",
         )

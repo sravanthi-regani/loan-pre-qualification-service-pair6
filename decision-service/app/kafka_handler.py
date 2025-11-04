@@ -22,11 +22,11 @@ class DecisionKafkaHandler:
 
     def __init__(
         self,
-        bootstrap_servers: str = "localhost:9092",
+        bootstrap_servers: str = None,
         consumer_group: str = "decision-service-group",
         consume_topic: str = "credit_reports_generated",
     ):
-        self.bootstrap_servers = bootstrap_servers
+        self.bootstrap_servers = bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
         self.consumer_group = consumer_group
         self.consume_topic = consume_topic
         self.consumer = None

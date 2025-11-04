@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 from kafka import KafkaProducer
 
@@ -7,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class PrequalKafkaProducer:
-    def __init__(self, bootstrap_servers: str = "localhost:9092"):
-        self.bootstrap_servers = bootstrap_servers
+    def __init__(self, bootstrap_servers: str = None):
+        self.bootstrap_servers = bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
         self.producer = None
 
     def connect(self):

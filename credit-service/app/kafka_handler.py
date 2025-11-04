@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from typing import Callable, Optional
 
 from kafka import KafkaConsumer, KafkaProducer
@@ -15,12 +16,12 @@ class CreditKafkaHandler:
 
     def __init__(
         self,
-        bootstrap_servers: str = "localhost:9092",
+        bootstrap_servers: str = None,
         consumer_group: str = "credit-service-group",
         consume_topic: str = "loan_applications_submitted",
         produce_topic: str = "credit-checks",
     ):
-        self.bootstrap_servers = bootstrap_servers
+        self.bootstrap_servers = bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
         self.consumer_group = consumer_group
         self.consume_topic = consume_topic
         self.produce_topic = produce_topic
